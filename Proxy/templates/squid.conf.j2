@@ -1,0 +1,43 @@
+# templates/squid.conf.j2
+# Port d'écoute par défaut
+http_port 3128
+
+# ----------------- 1. DÉCLARATION DE TOUTES LES ACLs -----------------
+
+# ACL 1: Liste des domaines à bloquer
+acl domains_bloques dstdomain .amazon.fr .amazon.com
+
+# ACL 2: Identification de la méthode de connexion chiffrée
+acl CONNECT method CONNECT
+
+# ACL 3: Définition des ports SSL/sécurisés
+acl SSL_ports port 443 563
+
+# ACL 4: Accès pour le réseau du proxy (VMs)
+acl vm_lan src 10.0.1.0/24
+
+# ACL 5: Accès spécifique pour le PC client
+acl client_pc src 10.213.119.200
+
+
+# ----------------- 2. RÈGLES D'ACCÈS (http_access) - L'ORDRE est CRUCIAL -----------------
+
+# 1. RÈGLE D'INTERDICTION HTTPS : Bloquer les requêtes CONNECT vers Amazon
+http_access deny CONNECT domains_bloques
+
+# 2. RÈGLE D'INTERDICTION HTTP : Bloquer les requêtes HTTP standard vers Amazon
+http_access deny domains_bloques
+
+# 3. RÈGLE D'INTERDICTION DE BASE : Bloquer les requêtes CONNECT vers des ports non sécurisés (bonne pratique)
+http_access deny CONNECT !SSL_ports
+
+
+# 4. RÈGLES D'AUTORISATION : Autoriser les réseaux définis pour le trafic restant
+http_access allow vm_lan
+http_access allow client_pc
+
+# 5. RÈGLE DE SÉCURITÉ : Refuser tout le reste
+http_access deny all
+
+# Option de caching
+cache_dir ufs /var/spool/squid 100 16 256
