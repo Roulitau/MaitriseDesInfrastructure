@@ -16,8 +16,8 @@ acl SSL_ports port 443 563
 # ACL 4: Accès pour le réseau du proxy (VMs)
 acl vm_lan src 10.0.1.0/24
 
-# ACL 5: Accès spécifique pour le PC client
-acl client_pc src 10.213.119.200
+# ACL 5: Accès pour le réseau du proxy (VMs)
+acl vm_class src 10.0.0.0/24
 
 
 # ----------------- 2. RÈGLES D'ACCÈS (http_access) - L'ORDRE est CRUCIAL -----------------
@@ -34,10 +34,11 @@ http_access deny CONNECT !SSL_ports
 
 # 4. RÈGLES D'AUTORISATION : Autoriser les réseaux définis pour le trafic restant
 http_access allow vm_lan
-http_access allow client_pc
+http_access allow vm_class
 
 # 5. RÈGLE DE SÉCURITÉ : Refuser tout le reste
 http_access deny all
 
 # Option de caching
+
 cache_dir ufs /var/spool/squid 100 16 256
