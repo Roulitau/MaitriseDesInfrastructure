@@ -98,9 +98,9 @@ http\_access deny all
 
 cache\_dir ufs /var/spool/squid 100 16 256
 
-root@Srv-ansible-debian13:~/ansible/templates#
 
 
 LE PROXY MARCHE SEULEMENT VIA FIREFOX : IL FAUT ALLER DANS LES PARAMETRES DE FIREFOX ET RAJOUTER MANUELLEMENT LE PROXY, vous mettez l'ip de votre serveur proxy + le port 3128
 https://support.mozilla.org/fr/kb/parametres-connexion-firefox?redirectslug=parametres-de-connexion-de-firefox\&redirectlocale=fr
+
 
