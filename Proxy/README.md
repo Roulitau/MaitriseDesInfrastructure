@@ -1,9 +1,9 @@
 Pour utiliser le playbook install\_squid il faut créer un dossier puis un fichier comme ceci : 
 
 ansible 
--> install\_squid.yml
--> templates
-      -> squid.conf.j2 
+|-> install_squid.yml
+|-> templates
+      |-> squid.conf.j2 
 
 ansible est un dossier
 install\_squid.yml est le playbook 
@@ -13,6 +13,7 @@ squid.conf.j2 est un fichier template pour squid, si il n'est pas présent dans 
 
 LE PROXY MARCHE SEULEMENT VIA FIREFOX : IL FAUT ALLER DANS LES PARAMETRES DE FIREFOX ET RAJOUTER MANUELLEMENT LE PROXY, vous mettez l'ip de votre serveur proxy + le port 3128
 https://support.mozilla.org/fr/kb/parametres-connexion-firefox?redirectslug=parametres-de-connexion-de-firefox\&redirectlocale=fr
+
 
 
 
