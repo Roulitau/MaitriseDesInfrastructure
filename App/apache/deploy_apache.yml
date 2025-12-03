@@ -1,0 +1,47 @@
+---
+- name: Déployer et configurer Apache sur les serveurs web
+  hosts: webservers # Assurez-vous que ce groupe est bien défini dans votre inventaire
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: 1. Installer le paquet Apache2
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: 2. Activer le service Apache2 au démarrage
+      ansible.builtin.service:
+        name: apache2
+        enabled: yes
+        state: started # S'assure qu'il est démarré immédiatement
+
+    - name: 3. Déployer la page d'accueil personnalisée (index.html)
+      ansible.builtin.template:
+        # Assurez-vous que templates/index.html.j2 existe sur votre machine de contrôle
+        src: templates/index.html.j2
+        # Le chemin par défaut pour les fichiers web Apache est /var/www/html/
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      notify: restart apache2 # Redémarre Apache après modification du contenu principal
+
+    # Tâche pour déployer une page additionnelle (comme 'about.html')
+    - name: 4. Déployer la page additionnelle personnalisée (about.html)
+      ansible.builtin.template:
+        src: templates/about.html.j2
+        dest: /var/www/html/about.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      # Pas besoin de notifier restart apache2 si le contenu HTML seul change
+
+  handlers:
+    - name: restart apache2
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
