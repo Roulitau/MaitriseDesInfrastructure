@@ -37,10 +37,10 @@ Le tableau ci-dessous liste les machines déployées, leur rôle, leur adresse I
 
 | Service | Logiciel | Adresse IP | Responsables |
 | :--- | :--- | :--- | :--- |
-| **DHCP** (Serveur) | `dhcpd` | `10.0.1.2` | **Killian, Gauthier** |
-| **DNS** (Serveur) | `bind9` | `10.0.1.3` | **Luc, Loqman** |
-| **Application** (Web) | `Apache` ou `Nginx` | `10.0.1.4` | **Julien** |
-| **Proxy** (Forward) | `squid` | `10.0.1.5` | **Cyril** |
+| **DHCP** (Serveur) | `dhcpd` | `10.0.1.2/24` | **Killian, Gauthier** |
+| **DNS** (Serveur) | `bind9` | `10.0.1.3/24` | **Luc, Loqman** |
+| **Application** (Web) | `Apache` ou `Nginx` | `10.0.1.4/24` | **Julien** |
+| **Proxy** (Forward) | `squid` | `10.0.1.5/24` | **Cyril** |
 
 ### 🛡️ Réseau **DMZ** (`10.0.2.0/24`)
 
