@@ -10,12 +10,12 @@ L'objectif de ce projet est de concevoir, déployer, configurer et sécuriser un
 
 L'infrastructure est articulée autour d'un **Routeur central** et de **quatre réseaux distincts**, garantissant la segmentation et la sécurité des services.
 
-| Nom du Réseau | CIDR | Plage d'Adresses | Rôle Principal |
-| :--- | :--- | :--- | :--- |
-| **Classe** | `10.0.0.0/24` | `10.0.0.1` à `10.0.0.254` | Postes clients de cours (zone de travail). |
-| **Serv** | `10.0.1.0/24` | `10.0.1.1` à `10.0.1.254` | Hébergement des services internes critiques (DHCP, DNS, Proxy, Application). |
-| **DMZ** | `10.0.2.0/24` | `10.0.2.1` à `10.0.2.254` | Zone Démilitarisée. Sert de tampon pour les services accessibles depuis l'extérieur (Reverse Proxy). |
-| **Net** | `10.0.3.0/24` | `10.0.3.1` à `10.0.3.254` | Simule le réseau externe (Internet). |
+| Nom du Réseau | CIDR | Plage d'Adresses | Killian | Rôle Principal |
+| :--- | :--- | :--- | :--- | :--- |
+| **Classe** | `10.0.0.0/24` | `10.0.0.1` à `10.0.0.254` | Killian | Postes clients de cours (zone de travail). |
+| **Serv** | `10.0.1.0/24` | `10.0.1.1` à `10.0.1.254` | Killian | Hébergement des services internes critiques (DHCP, DNS, Proxy, Application). |
+| **DMZ** | `10.0.2.0/24` | `10.0.2.1` à `10.0.2.254` | Killian | Zone Démilitarisée. Sert de tampon pour les services accessibles depuis l'extérieur (Reverse Proxy). |
+| **Net** | `10.0.3.0/24` | `10.0.3.1` à `10.0.3.254` | Killian | Simule le réseau externe (Internet). |
 
 ### 🔗 Matériel Clé
 
