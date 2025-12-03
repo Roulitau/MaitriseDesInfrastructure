@@ -1,0 +1,33 @@
+- name: Déployer et configurer Nginx sur les serveurs web
+  hosts: webservers
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Installer le paquet Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Activer le service Nginx au démarrage
+      ansible.builtin.service:
+        name: nginx
+        enabled: yes
+
+    - name: Déployer la page d'accueil personnalisée
+      ansible.builtin.template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+      notify: restart nginx
+
+  handlers:
+    - name: restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
