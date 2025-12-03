@@ -16,7 +16,7 @@ acl SSL_ports port 443 563
 # ACL 4: Accès pour le réseau du proxy (VMs)
 acl vm_lan src 10.0.1.0/24
 
-# ACL 5: Accès pour le réseau du proxy (VMs)
+# ACL 5: Accès pour le réseau class (VMs)
 acl vm_class src 10.0.0.0/24
 
 
@@ -42,3 +42,4 @@ http_access deny all
 # Option de caching
 
 cache_dir ufs /var/spool/squid 100 16 256
+
