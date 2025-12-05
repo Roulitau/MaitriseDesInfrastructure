@@ -1,6 +1,6 @@
 ---
 - name: installation du service Nginx
-  hosts: all
+  hosts: reverse
   become: true
 
   vars:
