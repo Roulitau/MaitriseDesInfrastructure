@@ -2,40 +2,39 @@
 - name: Installer et configurer un serveur DNS (Bind9)
   hosts: dns
   become: yes
-  gather_facts: yes # Assurez-vous d'avoir les faits pour ansible_host
+  gather_facts: yes # Nécessaire pour obtenir l'IP actuelle (ansible_host)
 
   vars:
-    # L'IP cible pour les enregistrements (future IP de production)
+    # L'IP cible pour les enregistrements (future IP statique de production)
     dns_ip: "10.0.1.3"
     domain_name: "intra.local"
-    
+
     # Octets du réseau Serv (10.0.1.x)
-    network: "10.0.1" 
-    
-    # Segments de réseau additionnels (uniquement les octets 10.0.X)
+    network: "10.0.1"
+
+    # Segments de réseau additionnels pour les zones inverses
     additional_nets:
       - "10.0.0" # Classe
       - "10.0.2" # DMZ
       - "10.0.3" # Net
 
   tasks:
-    
-    # TÂCHE CRITIQUE 1 : Correction des sources APT pour le NAT/Internet
+
+    # TÂCHE 1 : Correction des sources APT (corrige le problème du CD-ROM/apt update)
     - name: Remplacer le CD-ROM par les dépôts Internet (Trixie)
       ansible.builtin.copy:
         dest: /etc/apt/sources.list
         content: |
-          # Sources principales Debian Trixie via Internet
           deb http://deb.debian.org/debian/ trixie main contrib non-free-firmware
           deb-src http://deb.debian.org/debian/ trixie main contrib non-free-firmware
 
-          # Mises à jour de sécurité
           deb http://security.debian.org/debian-security trixie-security main contrib non-free-firmware
           deb-src http://security.debian.org/debian-security trixie-security main contrib non-free-firmware
         owner: root
         group: root
         mode: '0644'
 
+    # TÂCHE 2 : Installation des paquets
     - name: Installer Bind9 et ses dépendances
       ansible.builtin.apt:
         name:
@@ -43,50 +42,51 @@
           - dnsutils
           - bind9-doc
         state: present
-        update_cache: yes # Maintenant, cette commande réussira via Internet
+        update_cache: yes
 
-    # TÂCHE CRITIQUE 2 : Configurer named.conf.options (Écoute dynamique)
-    # Utilisation de ansible_host (l'IP DHCP actuelle, ex: 192.168.81.147) pour que BIND démarre
-    - name: Configurer named.conf.options (écoute sur IP actuelle + 127.0.0.1)
+    # TÂCHE 3 : Configuration named.conf.options (CRITIQUE pour l'écoute et la récursion)
+    - name: Configurer named.conf.options
       ansible.builtin.copy:
         dest: /etc/bind/named.conf.options
         content: |
           options {
             directory "/var/cache/bind";
-            
+
             recursion yes;
-            allow-recursion { 10.0.0.0/24; 10.0.1.0/24; 10.0.2.0/24; 10.0.3.0/24; }; # Limiter aux futurs réseaux internes
+
+            allow-recursion { 10.0.0.0/24; 10.0.1.0/24; 10.0.2.0/24; 10.0.3.0/24; 127.0.0.1; 192.168.81.0/24; };
 
             forwarders {
+              10.213.0.1;
               1.1.1.1;
               8.8.8.8;
             };
-            
-            # Écoute sur l'IP actuelle du serveur et localhost pour que BIND démarre
-            listen-on { {{ ansible_host }}; 127.0.0.1; }; 
+
+            listen-on { {{ ansible_host }}; 127.0.0.1; };
             listen-on-v6 { none; };
 
             dnssec-validation auto;
           };
       notify: restart bind9
 
+    # TÂCHE 4 : Déclaration des zones dans named.conf.local
     - name: Configurer les zones DNS locales (Directe et Inverses)
       ansible.builtin.copy:
         dest: /etc/bind/named.conf.local
         content: |
-          # Zone de résolution directe ({{ domain_name }})
+          // Zone de résolution directe ({{ domain_name }})
           zone "{{ domain_name }}" {
             type master;
             file "/etc/bind/db.{{ domain_name }}";
           };
 
-          # Zone de résolution inverse (Serv : 10.0.1.x)
+          // Zone de résolution inverse (Serv : 10.0.1.x)
           zone "{{ network.split('.')[2] }}.{{ network.split('.')[1] }}.{{ network.split('.')[0] }}.in-addr.arpa" {
             type master;
             file "/etc/bind/db.{{ network }}.rev";
           };
 
-          # Zones inverses additionnelles (Classe, DMZ, Net)
+          // Zones inverses additionnelles
           {% for net in additional_nets %}
           zone "{{ net.split('.')[2] }}.{{ net.split('.')[1] }}.{{ net.split('.')[0] }}.in-addr.arpa" {
             type master;
@@ -95,7 +95,8 @@
           {% endfor %}
       notify: restart bind9
 
-    - name: Créer la zone directe (db.intra.local)
+    # TÂCHE 5 : Créer la zone directe (db.intra.local)
+    - name: Créer la zone directe (db.{{ domain_name }})
       ansible.builtin.copy:
         dest: /etc/bind/db.{{ domain_name }}
         content: |
@@ -113,10 +114,11 @@
           dhcp        IN  A       10.0.1.2
           app         IN  A       10.0.1.4
           proxy       IN  A       10.0.1.5
-          ReverseProxy IN A       10.0.2.2 ; Enregistrement de la DMZ
+          ReverseProxy IN A       10.0.2.2 ; Exemple d'enregistrement DMZ
       notify: restart bind9
 
-    - name: Créer la zone reverse (db.10.0.1.rev)
+    # TÂCHE 6 : Créer la zone reverse principale (db.10.0.1.rev)
+    - name: Créer la zone reverse (db.{{ network }}.rev)
       ansible.builtin.copy:
         dest: /etc/bind/db.{{ network }}.rev
         content: |
@@ -136,6 +138,7 @@
           5       IN  PTR   proxy.{{ domain_name }}.
       notify: restart bind9
 
+    # TÂCHE 7 : Créer les fichiers de zones inverses additionnelles (Placeholders)
     - name: Créer les fichiers de zones inverses additionnelles (Placeholders)
       ansible.builtin.copy:
         dest: "/etc/bind/db.{{ net }}.rev"
@@ -155,6 +158,7 @@
         loop_var: net
       notify: restart bind9
 
+    # TÂCHE 8 : Assurer que le service est démarré et activé
     - name: Activer et lancer Bind9
       ansible.builtin.systemd:
         name: bind9
